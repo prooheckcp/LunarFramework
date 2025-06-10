@@ -1,0 +1,11 @@
+{
+    "author": "prooheckcp",
+    "name": "TestExample",
+    "description": "A cleaner to handle connections and or object cleaning in your project",
+    "version": "0.0.1",
+    "license": "MIT",
+    "exclude": ["**"],
+    "include": ["**"],
+    "repository": "",
+    "dependencies": []
+}
