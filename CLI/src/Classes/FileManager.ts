@@ -14,10 +14,11 @@ class Instance {
     private _Parent: string
 
     constructor(directory: string){
-        // If the directory does not exist then create one
         this._Directory = path.resolve(directory)
         this._Parent = path.dirname(this._Directory)
     }
+
+    // Add SetParent and SetName. Make the Name a dynamic Get as well. 
 
     get Parent(): Folder{
         return new Folder(this._Parent)
@@ -25,10 +26,6 @@ class Instance {
 
     get Directory(){
         return this._Directory
-    }
-
-    set Parent(newDirectory: string){
-        this._Parent = newDirectory
     }
 
     async Destroy(){
@@ -48,21 +45,28 @@ export class Folder extends Instance {
         return folder
     }
 
-    async GetChildren():Promise<(File | Folder)[]>{
-        const files: string[] = await fs.readdir(this.Directory)
-        const filesObjects: (File | Folder)[] = []
+    async GetChildren():Promise<Instance[]>{
+        const filesPaths: string[] = await fs.readdir(this.Directory)
+        const filesInstances: Instance[] = []
 
-        for (const file of files){
+        for (const file of filesPaths){
             let fullFilePath: string = path.join(this.Directory, file)
+            let folder: Folder | null = await FileManager.GetFolder(fullFilePath)
+            let newInstance = folder || (await FileManager.GetFile(fullFilePath))
 
-            // Create Object
+            if (newInstance)
+                filesInstances.push(newInstance)
         }
 
-        return filesObjects
+        return filesInstances
     }
 
     async Empty(){
-        // Call get children and delete
+        const filesInstances: Instance[] = await this.GetChildren()
+
+        filesInstances.forEach(instance => {
+            await instance.Destroy()
+        })
     }
 }
 
@@ -77,6 +81,8 @@ export class File extends Instance {
 
         return file
     }
+
+    // Add JSON and TOML support for writing. Add writing/read to file API and check if any other is needed
 }
 
 export class FileManager {
