@@ -3,6 +3,7 @@
 import path from "path"
 import { Command } from "commander"
 import {getNestedFiles} from "./Functions/fileUtil"
+import {Folder} from "./Classes/FileManager"
 
 const COMMANDS_DIRECTORY: string = path.join(__dirname, "Commands")
 
@@ -21,7 +22,8 @@ async function init(){
         module.init(program)
     }
 
-    program.parse();
+    let folder = Folder.create(path.join("./", "Amogus"))
+    // program.parse();
 }
 
 init();
