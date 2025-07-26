@@ -13,7 +13,7 @@ class Instance {
     private _Directory: string = ""
     private _Parent: string
 
-    constructor(public directory: string){
+    constructor(directory: string){
         // If the directory does not exist then create one
         this._Directory = path.resolve(directory)
         this._Parent = path.dirname(this._Directory)
@@ -48,12 +48,21 @@ export class Folder extends Instance {
         return folder
     }
 
-    GetChildren(){
-        
+    async GetChildren():Promise<(File | Folder)[]>{
+        const files: string[] = await fs.readdir(this.Directory)
+        const filesObjects: (File | Folder)[] = []
+
+        for (const file of files){
+            let fullFilePath: string = path.join(this.Directory, file)
+
+            // Create Object
+        }
+
+        return filesObjects
     }
 
-    Empty(){
-
+    async Empty(){
+        // Call get children and delete
     }
 }
 
