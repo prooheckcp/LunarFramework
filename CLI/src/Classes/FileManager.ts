@@ -7,36 +7,32 @@ import type { Stats } from 'fs';
 
 class Instance {
     // Public
-    Directory: string = ""
-    Name: string = "";
+    public Name: string = "";
+
     // Private
-    _Parent: string
+    private _Directory: string = ""
+    private _Parent: string
 
     constructor(public directory: string){
         // If the directory does not exist then create one
-        this.Directory = directory
-
-        this._Parent = path.dirname(directory)
+        this._Directory = path.resolve(directory)
+        this._Parent = path.dirname(this._Directory)
     }
 
-    get Parent(){
-        return this._Parent
+    get Parent(): Folder{
+        return new Folder(this._Parent)
+    }
+
+    get Directory(){
+        return this._Directory
     }
 
     set Parent(newDirectory: string){
         this._Parent = newDirectory
     }
 
-    GetChildren(){
-
-    }
-
-    Empty(){
-
-    }
-
-    Destroy(){
-
+    async Destroy(){
+        await rm(this.Directory, { recursive: true, force: true });
     }
 }
 
@@ -44,22 +40,33 @@ export class Folder extends Instance {
     static async create(path: string): Promise<Folder> {
         let folder: Folder | null = await FileManager.GetFolder(path)
 
-        console.log(`Path: ${path}`)
-        console.log(`Folder: ${folder}`)
-
         if (!folder){
-            console.log("Made a new folder!")
             await fs.mkdir(path)
             folder = new Folder(path)
         }
 
         return folder
     }
+
+    GetChildren(){
+        
+    }
+
+    Empty(){
+
+    }
 }
 
 export class File extends Instance {
-    static async create(path: string){
+    static async create(path: string, content?: string){
+        let file: File | null = await FileManager.GetFile(path)
 
+        if (!file){
+            await fs.writeFile(path, content || "")
+            file = new File(path)
+        }
+
+        return file
     }
 }
 
