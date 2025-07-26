@@ -64,9 +64,8 @@ export class Folder extends Instance {
     async Empty(){
         const filesInstances: Instance[] = await this.GetChildren()
 
-        filesInstances.forEach(instance => {
-            await instance.Destroy()
-        })
+        for (let i = 0; filesInstances.length; i++)
+            await filesInstances[i].Destroy()
     }
 }
 
