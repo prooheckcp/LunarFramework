@@ -22,9 +22,11 @@ async function init(){
         module.init(program)
     }
 
-    let folder = await File.create(path.join("./", "Amogus.json"))
-    
-    console.log(`Directory: ${folder.Directory} Parent: ${folder.Parent}`)
+    let folder = await Folder.create(path.join("./", "ExampleFolder"))
+    let file = await File.create(path.join("./", "File.txt"))
+
+    await file.SetParent(folder)
+    await file.SetName("foo.json")
 }
 
 init();

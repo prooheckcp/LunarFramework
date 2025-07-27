@@ -1,14 +1,11 @@
 import fs from "fs/promises"
-import path from "path"
+import path, { resolve } from "path"
 import { rename, readdir, rm } from 'fs/promises'
 
 // Types
 import type { Stats } from 'fs';
 
 class Instance {
-    // Public
-    public Name: string = "";
-
     // Private
     private _Directory: string = ""
     private _Parent: string
@@ -18,14 +15,46 @@ class Instance {
         this._Parent = path.dirname(this._Directory)
     }
 
-    // Add SetParent and SetName. Make the Name a dynamic Get as well. 
-
     get Parent(): Folder{
         return new Folder(this._Parent)
     }
 
     get Directory(){
         return this._Directory
+    }
+
+    get Name(){
+        return path.basename(this._Directory)
+    }
+
+    async SetName(name: string){
+        const newCompletePath = path.join(this._Parent, name)
+
+        await rename(this._Directory, newCompletePath)
+
+        this._Directory = newCompletePath
+    }
+
+    async SetParent(newDirectory: string | Folder){
+        let resolvedPath: string = ""
+
+        if (typeof(newDirectory) == "string"){
+            resolvedPath = newDirectory
+
+            if (!await FileManager.GetFolder(resolvedPath))
+                throw new Error(`There's no directory under ${resolvedPath}`);
+
+        }else if(newDirectory instanceof Folder)
+            resolvedPath = newDirectory.Directory
+        else
+            throw new Error("Invalid parent directory type.")
+        
+
+        let newCompletePath: string = path.join(path.resolve(resolvedPath), this.Name)
+        await rename(this._Directory, newCompletePath)
+
+        this._Directory = newCompletePath
+        this._Parent = path.dirname(newCompletePath)
     }
 
     async Destroy(){
@@ -81,6 +110,21 @@ export class File extends Instance {
         return file
     }
 
+    async Read(): string {
+
+    }
+
+    async Write(newContent: string): string {
+
+    }
+
+    async WriteObject<T>(object: T) {
+
+    }
+
+    async ReadObject<T>(): T {
+
+    }
     // Add JSON and TOML support for writing. Add writing/read to file API and check if any other is needed
 }
 
