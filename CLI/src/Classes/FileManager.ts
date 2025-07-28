@@ -6,6 +6,38 @@ import toml from "@iarna/toml"
 // Types
 import type { Stats } from 'fs';
 
+export async function getNestedFiles(directory: string, extension?: string): Promise<string[]>{
+    let filesArray: string[] = []
+
+    try {
+        const files = await fs.readdir(directory)
+
+        for (const file of files){
+            let nestedDirectory: string = path.join(directory, file)
+            let pathStat: Stats = await fs.stat(nestedDirectory)
+
+            if (pathStat.isDirectory())
+                filesArray = filesArray.concat(await getNestedFiles(nestedDirectory, extension))
+            else if(pathStat.isFile()){                
+                if (extension == null)
+                    filesArray.push(nestedDirectory)
+                else{
+                    let extName: string = path.extname(nestedDirectory)
+
+                    if (extName == extension || extName == `.${extension}`)
+                        filesArray.push(nestedDirectory)
+                }
+            }           
+        }
+    }
+
+    catch(err){
+        console.log(err)
+    }
+
+    return filesArray
+}
+
 class Instance {
     // Private
     private _Directory: string = ""
@@ -75,8 +107,34 @@ export class Folder extends Instance {
         return folder
     }
 
-    async GetChildren():Promise<Instance[]>{
+    async GetChildren(extension?: string):Promise<Instance[]>{
         const filesPaths: string[] = await fs.readdir(this.Directory)
+        const filesInstances: Instance[] = []
+
+        for (const file of filesPaths){
+            let fullFilePath: string = path.join(this.Directory, file)
+            let folder: Folder | null = await FileManager.GetFolder(fullFilePath)
+            let newInstance = folder || (await FileManager.GetFile(fullFilePath))
+            
+            if (newInstance == null)
+                continue
+
+            if (extension == null){
+                filesInstances.push(newInstance)
+                continue
+            }
+
+            let extName: string = path.extname(fullFilePath)
+
+            if (extName == extension || extName == `.${extension}`)
+                filesInstances.push(newInstance)
+        }
+
+        return filesInstances
+    }
+
+    async GetDescendants(extension?: string):Promise<Instance[]>{
+        const filesPaths: string[] = await getNestedFiles(this.Directory, extension)
         const filesInstances: Instance[] = []
 
         for (const file of filesPaths){
@@ -96,6 +154,10 @@ export class Folder extends Instance {
 
         for (let i = 0; filesInstances.length; i++)
             await filesInstances[i].Destroy()
+    }
+
+    async MoveChildren(newDirectory: string | Folder){
+        // Move children
     }
 }
 
