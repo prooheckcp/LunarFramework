@@ -1,6 +1,7 @@
 import fs from "fs/promises"
 import path, { resolve } from "path"
 import { rename, readdir, rm } from 'fs/promises'
+import toml from "@iarna/toml"
 
 // Types
 import type { Stats } from 'fs';
@@ -110,22 +111,34 @@ export class File extends Instance {
         return file
     }
 
-    async Read(): string {
-
+    async Read(): Promise<string> {
+        let fileData: string = await fs.readFile(this.Directory, 'utf-8')
+        
+        return fileData
     }
 
-    async Write(newContent: string): string {
-
+    async Write(newContent: string) {
+        await fs.writeFile(this.Directory, newContent)
     }
 
     async WriteObject<T>(object: T) {
+        const extensionName: string = path.extname(this.Directory)
+        
+        if (extensionName == "toml")
+            return this.Write(toml.stringify(object as toml.JsonMap))
 
+        await this.Write(JSON.stringify(object))
     }
 
-    async ReadObject<T>(): T {
+    async ReadObject<T>(): Promise<T> {
+        const extensionName: string = path.extname(this.Directory)
+        let data: string = await this.Read()
 
+        if (extensionName == "toml")
+            return toml.parse(data) as T
+
+        return JSON.parse(data) as T
     }
-    // Add JSON and TOML support for writing. Add writing/read to file API and check if any other is needed
 }
 
 export class FileManager {
