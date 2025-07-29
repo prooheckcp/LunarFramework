@@ -138,7 +138,7 @@ export class Folder extends Instance {
         const filesInstances: Instance[] = []
 
         for (const file of filesPaths){
-            let fullFilePath: string = path.join(this.Directory, file)
+            let fullFilePath: string = file//path.join(this.Directory, file)
             let folder: Folder | null = await FileManager.GetFolder(fullFilePath)
             let newInstance = folder || (await FileManager.GetFile(fullFilePath))
 
@@ -152,16 +152,38 @@ export class Folder extends Instance {
     async Empty(){
         const filesInstances: Instance[] = await this.GetChildren()
 
-        for (let i = 0; filesInstances.length; i++)
+        for (let i = 0; i < filesInstances.length; i++)
             await filesInstances[i].Destroy()
     }
 
     async MoveChildren(newDirectory: string | Folder){
-        // Move children
+        const children: Instance[] = await this.GetChildren()
+
+        for (let i = 0; i < children.length; i++)
+            await children[i].SetParent(newDirectory)
     }
 }
 
 export class File extends Instance {
+    get Extension(){
+        let baseName: string = path.basename(this.Directory)
+        let dotIndex: number = -1
+        
+        for (let i = baseName.length; i > 0; i--){
+            if (baseName[i] == "."){
+                dotIndex = i
+                break
+            }
+        }
+
+        console.log(`Dot Index ${dotIndex}`)
+
+        if (dotIndex < 0)
+            return ""
+
+        return baseName.substring(dotIndex + 1)
+    }
+
     static async create(path: string, content?: string){
         let file: File | null = await FileManager.GetFile(path)
 
@@ -186,7 +208,7 @@ export class File extends Instance {
     async WriteObject<T>(object: T) {
         const extensionName: string = path.extname(this.Directory)
         
-        if (extensionName == "toml")
+        if (extensionName == ".toml")
             return this.Write(toml.stringify(object as toml.JsonMap))
 
         await this.Write(JSON.stringify(object))
@@ -196,7 +218,7 @@ export class File extends Instance {
         const extensionName: string = path.extname(this.Directory)
         let data: string = await this.Read()
 
-        if (extensionName == "toml")
+        if (extensionName == ".toml")
             return toml.parse(data) as T
 
         return JSON.parse(data) as T

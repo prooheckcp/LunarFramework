@@ -22,11 +22,9 @@ async function init(){
         module.init(program)
     }
 
-    let folder = await Folder.create(path.join("./", "ExampleFolder"))
-    let file = await File.create(path.join("./", "File.txt"))
-
-    await file.SetParent(folder)
-    await file.SetName("foo.json")
+    let file = await File.create(path.join("./", "ExampleFolder", "foo.json"))
+    
+    console.log(`Extension: ${file.Extension}`)
 }
 
 init();
