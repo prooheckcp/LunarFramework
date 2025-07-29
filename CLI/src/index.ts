@@ -26,8 +26,9 @@ async function init(){
     let folder = await exampleFolder.FindFirstFolder("Folder1")
     let folder2 = await exampleFolder.FindFirstFolder("Folder2")
     
-    let c = await folder2?.GetDescendants()
-    console.log(c)
+    await folder2?.Empty()
+
+    // program.parse()
 }
 
 init();

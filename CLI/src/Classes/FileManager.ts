@@ -179,7 +179,7 @@ export class File extends Instance {
         let baseName: string = path.basename(this.Directory)
         let dotIndex: number = -1
         
-        for (let i = baseName.length; i > 0; i--){
+        for (let i = baseName.length - 1; i > 0; i--){
             if (baseName[i] == "."){
                 dotIndex = i
                 break
