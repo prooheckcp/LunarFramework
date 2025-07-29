@@ -22,9 +22,12 @@ async function init(){
         module.init(program)
     }
 
-    let file = await File.create(path.join("./", "ExampleFolder", "foo.json"))
+    let exampleFolder = await Folder.create(path.join("./", "ExampleFolder"))
+    let folder = await exampleFolder.FindFirstFolder("Folder1")
+    let folder2 = await exampleFolder.FindFirstFolder("Folder2")
     
-    console.log(`Extension: ${file.Extension}`)
+    let c = await folder2?.GetDescendants()
+    console.log(c)
 }
 
 init();

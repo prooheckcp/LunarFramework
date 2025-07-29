@@ -16,8 +16,10 @@ export async function getNestedFiles(directory: string, extension?: string): Pro
             let nestedDirectory: string = path.join(directory, file)
             let pathStat: Stats = await fs.stat(nestedDirectory)
 
-            if (pathStat.isDirectory())
+            if (pathStat.isDirectory()){
+                filesArray.push(nestedDirectory)
                 filesArray = filesArray.concat(await getNestedFiles(nestedDirectory, extension))
+            }
             else if(pathStat.isFile()){                
                 if (extension == null)
                     filesArray.push(nestedDirectory)
