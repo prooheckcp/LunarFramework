@@ -149,6 +149,14 @@ export class Folder extends Instance {
         return filesInstances
     }
 
+    async FindFirstFolder(folderName: string): Promise<Folder | null>{
+        return await FileManager.GetFolder(path.join(this.Directory, folderName))
+    }
+
+    async FindFirstFile(fileName: string): Promise<File | null>{
+        return await FileManager.GetFile(path.join(this.Directory, fileName))
+    }
+
     async Empty(){
         const filesInstances: Instance[] = await this.GetChildren()
 
@@ -175,8 +183,6 @@ export class File extends Instance {
                 break
             }
         }
-
-        console.log(`Dot Index ${dotIndex}`)
 
         if (dotIndex < 0)
             return ""
