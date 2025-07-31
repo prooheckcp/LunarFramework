@@ -1,6 +1,6 @@
 import fs from "fs/promises"
-import path, { resolve } from "path"
-import { rename, readdir, rm } from 'fs/promises'
+import path from "path"
+import { rename, rm } from 'fs/promises'
 import toml from "@iarna/toml"
 
 // Types
