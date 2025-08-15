@@ -1,9 +1,7 @@
-#!/usr/bin/env node
-
 import path from "path"
 import { Command } from "commander"
 import {getNestedFiles} from "./Functions/fileUtil"
-import {Folder, File} from "./Classes/FileManager"
+// import {Folder, File} from "./Classes/FileManager"
 
 const COMMANDS_DIRECTORY: string = path.join(__dirname, "Commands")
 
@@ -22,13 +20,7 @@ async function init(){
         module.init(program)
     }
 
-    let exampleFolder = await Folder.create(path.join("./", "ExampleFolder"))
-    let folder = await exampleFolder.FindFirstFolder("Folder1")
-    let folder2 = await exampleFolder.FindFirstFolder("Folder2")
-    
-    await folder2?.Empty()
-
-    // program.parse()
+    program.parse()
 }
 
 init();
