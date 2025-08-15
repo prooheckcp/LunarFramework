@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "@prooheckcp/file-manager": "^0.0.7",
     "commander": "^14.0.0"
   }
 }
