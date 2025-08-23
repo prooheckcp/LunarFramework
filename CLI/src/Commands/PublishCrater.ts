@@ -3,6 +3,7 @@ import {Folder, File, FileManager} from "@prooheckcp/file-manager"
 import ReservedKeywords from "../Constants/ReservedKeywords.json"
 import { consolePathToFile } from "../Functions/consolePathToFile"
 import path from "path"
+import { Crater } from "../Classes/Crater"
 
 const init = (program: any)=> {
     program.command("publish-crater")
@@ -13,10 +14,15 @@ const init = (program: any)=> {
         let targetPath: string = pathArg || options.path || process.cwd()
         let craterFile: File | null = await consolePathToFile(targetPath, ReservedKeywords.Crater)
 
-        if (!craterFile)
+        if (!craterFile){
             console.error(`Could not find "${ReservedKeywords.Crater}" in the target folder.`)
-        else
-            console.log(`Found crater at ${craterFile.Directory}!`)
+            return 
+        }
+           
+        let object: Crater = new Crater(await craterFile.ReadObject())
+
+        console.log("Our object:")
+        console.log(object)
     });
 }
 

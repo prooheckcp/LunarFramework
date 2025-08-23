@@ -1,32 +1,33 @@
+type PartialDeep<T> = {
+  [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P];
+};
+
 export class Crater {
-  name: string;
-  version: string;
-  registry: string;
-  dependencies: Record<string, any>;
-  pointers: {
-    client: string;
-    server: string;
-    shared: string;
-  };
-
-  // default values
-  private static defaults = {
-    name: "default-name",
-    version: "0.0.1",
-    registry: "default-registry",
-    dependencies: {} as Record<string, any>,
+    name: string = "default-name";
+    version: string = "0.0.1";
+    registry: string = "default-registry";
+    dependencies: Record<string, any> = {};
     pointers: {
-      client: "default-client",
-      server: "default-server",
-      shared: "default-shared",
-    },
-  };
+        client: string;
+        server: string;
+        shared: string;
+    } = {
+        client: "default-client",
+        server: "default-server",
+        shared: "default-shared",
+    };
 
-  constructor(init: Partial<Crater> = {}) {
-    this.name = init.name ?? Crater.defaults.name;
-    this.version = init.version ?? Crater.defaults.version;
-    this.registry = init.registry ?? Crater.defaults.registry;
-    this.dependencies = init.dependencies ?? Crater.defaults.dependencies;
-    this.pointers = { ...Crater.defaults.pointers, ...(init.pointers ?? {}) };
-  }
+    constructor(init: PartialDeep<Crater>) {
+        function loopThruObject(object: any, assignableObject: any){
+            for (const index of Object.getOwnPropertyNames(object)){
+                if (typeof(object[index]) == "object"){
+                    if (assignableObject[index])
+                        loopThruObject(object[index], assignableObject[index])
+                }else if (assignableObject[index])
+                    object[index] = assignableObject[index]
+            }
+        }
+
+        loopThruObject(this, init)
+    }
 }
