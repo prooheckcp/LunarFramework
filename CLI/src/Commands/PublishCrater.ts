@@ -2,6 +2,7 @@ import RegistryContainer from "../Modules/RegistryContainer"
 import {Folder, File, FileManager} from "@prooheckcp/file-manager"
 import ReservedKeywords from "../Constants/ReservedKeywords.json"
 import { consolePathToFile } from "../Functions/consolePathToFile"
+import path from "path"
 
 const init = (program: any)=> {
     program.command("publish-crater")
