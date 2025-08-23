@@ -2,8 +2,7 @@
 
 import path from "path"
 import { Command } from "commander"
-import {getNestedFiles} from "./Functions/fileUtil"
-// import {Folder, File} from "./Classes/FileManager"
+import {Folder} from "./Classes/FileManager"
 
 const COMMANDS_DIRECTORY: string = path.join(__dirname, "Commands")
 
@@ -17,8 +16,10 @@ program
     .version(packageJson.version)
 
 async function init(){
-    for (const filePath of await getNestedFiles(COMMANDS_DIRECTORY)){
-        const module = require(filePath);
+    let commandsFolder: Folder = new Folder(COMMANDS_DIRECTORY);
+
+    for (const instance of await commandsFolder.GetChildren()){
+        const module = require(instance.Directory);
         module.init(program)
     }
 

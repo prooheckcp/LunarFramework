@@ -24,8 +24,8 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@iarna/toml": "^2.2.5",
-    "@prooheckcp/file-manager": "^0.0.7",
-    "commander": "^14.0.0"
+    "@prooheckcp/file-manager": "^0.0.9",
+    "commander": "^14.0.0",
+    "env-paths": "^3.0.0"
   }
 }

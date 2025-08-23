@@ -8,7 +8,7 @@ const init = (program: any)=> {
     .option('-p, --path <string>', 'custom path')
     .action(async (pathArg: string, options: {[key: string]: any}) => {
         let targetPath: string = pathArg || options.path || process.cwd()
-
+        
     });
 }
 
