@@ -1,3 +1,5 @@
+import RegistryContainer from "../Modules/RegistryContainer"
+
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P];
 };
@@ -29,5 +31,13 @@ export class Crater {
         }
 
         loopThruObject(this, init)
+    }
+
+    async Publish(){
+        // Instead make RegistryContainer a class and the constructor ensures and gets. It will then have an interface for my git commands
+        RegistryContainer.ensureAndGet(this.registry).then((dir: string) =>{
+            /*Now need to check if it exists, then versioning and only then paste to it*/
+            console.log(`Publishing ${this.name} to ${dir}`);
+        })
     }
 }

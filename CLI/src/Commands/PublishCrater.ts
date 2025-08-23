@@ -1,8 +1,6 @@
-import RegistryContainer from "../Modules/RegistryContainer"
-import {Folder, File, FileManager} from "@prooheckcp/file-manager"
+import {File} from "@prooheckcp/file-manager"
 import ReservedKeywords from "../Constants/ReservedKeywords.json"
 import { consolePathToFile } from "../Functions/consolePathToFile"
-import path from "path"
 import { Crater } from "../Classes/Crater"
 
 const init = (program: any)=> {
@@ -20,9 +18,7 @@ const init = (program: any)=> {
         }
            
         let object: Crater = new Crater(await craterFile.ReadObject())
-
-        console.log("Our object:")
-        console.log(object)
+        object.Publish()
     });
 }
 

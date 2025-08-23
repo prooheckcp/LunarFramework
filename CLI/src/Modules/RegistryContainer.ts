@@ -5,8 +5,6 @@ import crypto from 'crypto';
 import { spawn } from 'child_process';
 import envPaths from 'env-paths';
 
-// src/Modules/RegistryContainer.ts
-
 export class RegistryContainer {
     // In-memory lock map to avoid concurrent clone/pull on same repo
     private static locks: Map<string, Promise<string>> = new Map()
@@ -36,6 +34,7 @@ export class RegistryContainer {
         }
         basePart = basePart.replace(/\.git$/i, '');
         const hash = crypto.createHash('sha1').update(registryUrl).digest('hex').slice(0, 10);
+
         return `${basePart}-${hash}`;
     }
 
@@ -45,7 +44,10 @@ export class RegistryContainer {
 
     static async repoExists(registryUrl: string): Promise<boolean> {
         const dir = this.getRepoDir(registryUrl);
-        if (!existsSync(dir)) return false;
+        
+        if (!existsSync(dir)) 
+            return false;
+
         const gitDir = path.join(dir, '.git');
         return existsSync(gitDir);
     }
@@ -72,6 +74,21 @@ export class RegistryContainer {
         }
         return dir;
     }
+
+    static async commitAndPush(
+        repoDir: string,
+        message: string = "Update from RegistryContainer"
+    ): Promise<void> {
+        // Stage all changes
+        await this.runGit(['-C', repoDir, 'add', '.']);
+
+        // Commit
+        await this.runGit(['-C', repoDir, 'commit', '-m', message]);
+
+        // Push to the remote (current branch)
+        await this.runGit(['-C', repoDir, 'push']);
+    }
+
 
     // Ensure repo is present and up to date, returns absolute directory
     static async ensureAndGet(registryUrl: string): Promise<string> {
