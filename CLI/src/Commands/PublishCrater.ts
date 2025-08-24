@@ -17,7 +17,7 @@ const init = (program: any)=> {
             return 
         }
            
-        let object: Crater = new Crater(await craterFile.ReadObject())
+        let object: Crater = new Crater(await craterFile.ReadObject(), craterFile.Parent)
         object.Publish()
     });
 }

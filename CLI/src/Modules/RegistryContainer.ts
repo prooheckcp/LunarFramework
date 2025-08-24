@@ -4,6 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
 import envPaths from 'env-paths';
+import {File, Folder, FileManager} from "@prooheckcp/file-manager"
 
 export class RegistryContainer {
     private repoPath: string;
@@ -24,10 +25,15 @@ export class RegistryContainer {
         if (!this.locks.has(repoPath)) {
             const task = (async () => {
                 await this.ensureBaseDir();
-                
+
                 if (await this.repoExists(registryUrl)) {
-                    return new RegistryContainer(registryUrl, repoPath);
+                    // Repo already exists → update it
+                    const container = new RegistryContainer(registryUrl, repoPath);
+                    await container.fetch();
+                    await container.pull();
+                    return container;
                 } else {
+                    // Repo doesn’t exist → clone it
                     const container = new RegistryContainer(registryUrl, repoPath);
                     await container.clone();
                     return container;
@@ -41,9 +47,40 @@ export class RegistryContainer {
         return this.locks.get(repoPath)!;
     }
 
+    async getRegistryFolder(packageName: string): Promise<Folder | null>{
+        
+        let repoFolder: Folder | null = await FileManager.GetFolder(this.repoPath)
+
+        if (repoFolder)
+            return await repoFolder.FindFirstFolder(packageName)
+
+        return null
+    }
+
+    async getVersionFolder(packageName: string, version: string): Promise<Folder | null>{
+        let packageFolder = await this.getRegistryFolder(packageName)
+
+        if (packageFolder)
+            return await packageFolder.FindFirstFolder(version)
+
+        return null
+    }
+
     // Git operations
     async clone(): Promise<void> {
-        await this.runGit(['clone', '--depth=1', this.registryUrl, this.repoPath]);
+        const parentDir = path.dirname(this.repoPath);
+        await this.runGit(['clone', '--depth=1', this.registryUrl, this.repoPath], parentDir);
+    }
+
+
+    async fetchAndPull(): Promise<void> {
+        await this.fetch();
+        await this.pull();
+    }
+
+    async commitAndPush(message: string = "Update from RegistryContainer"): Promise<void> {
+        await this.commit(message);
+        await this.push();
     }
 
     async pull(): Promise<void> {
@@ -120,9 +157,9 @@ export class RegistryContainer {
         }
     }
 
-    private runGit(args: string[]): Promise<void> {
+    private runGit(args: string[], cwd: string = this.repoPath): Promise<void> {
         return new Promise((resolve, reject) => {
-            const child = spawn('git', args, { stdio: 'inherit', cwd: this.repoPath });
+            const child = spawn('git', args, { stdio: 'inherit', cwd });
             child.on('error', reject);
             child.on('exit', code => {
                 if (code === 0) resolve();
