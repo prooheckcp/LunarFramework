@@ -20,12 +20,14 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.15.21",
+    "@types/semver": "^7.7.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@prooheckcp/file-manager": "^0.0.9",
     "commander": "^14.0.0",
-    "env-paths": "^3.0.0"
+    "env-paths": "^3.0.0",
+    "semver": "^7.7.2"
   }
 }

@@ -1,6 +1,11 @@
 {
     "registry": "https://github.com/prooheckcp/LunarRegistry",
+    "cratersPaths": {
+        "Client": "./Client",
+        "Server": "./Server",
+        "Shared": "./Shared"
+    },
     "craters": {
-        "@iarna/toml": "^2.2.5"
+        "Crate": "0.0.1"
     }
 }

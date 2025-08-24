@@ -9,7 +9,31 @@ type PartialDeep<T> = {
 };
 
 export class Crater {
-    name: string = "default-name";
+    export class Project {
+        registry: string = "https://github.com/prooheckcp/LunarRegistry";
+        cratersPaths: {
+            Client: string;
+            Server: string;
+            Shared: string;
+        } = {
+            Client: "./Client",
+            Server: "./Server",
+            Shared: "./Shared"
+        };
+        craters: Record<string, string> = {};
+        packagePath: string = "";
+
+        constructor(init: PartialDeep<Project>, jsonParent: Folder) {
+            if (!init.packagePath)
+                this.packagePath = jsonParent.Directory
+
+            loopThruObject(this, init)
+        }
+
+        async GetFolder(): Promise<Folder>{
+            return await Folder.create(this.packagePath)
+        }
+    }
     version: string = "0.0.1";
     registry: string = "default-registry";
     packagePath: string = "";

@@ -4,7 +4,8 @@ import path from 'path';
 import crypto from 'crypto';
 import { spawn } from 'child_process';
 import envPaths from 'env-paths';
-import {File, Folder, FileManager} from "@prooheckcp/file-manager"
+import {Folder, FileManager} from "@prooheckcp/file-manager"
+import semver from "semver"
 
 export class RegistryContainer {
     private repoPath: string;
@@ -48,11 +49,10 @@ export class RegistryContainer {
     }
 
     async getRegistryFolder(packageName: string): Promise<Folder | null>{
-        
         let repoFolder: Folder | null = await FileManager.GetFolder(this.repoPath)
 
         if (repoFolder)
-            return await repoFolder.FindFirstFolder(packageName)
+            return await repoFolder.FindFirstFolder(packageName.toLowerCase())
 
         return null
     }
@@ -64,6 +64,25 @@ export class RegistryContainer {
             return await packageFolder.FindFirstFolder(version)
 
         return null
+    }
+
+    async getAllPackageVersions(packageName: string): Promise<string[]> {
+        let registryFolder: Folder | null = await this.getRegistryFolder(packageName)
+
+        if (!registryFolder)
+            return []
+
+        let versions: string[] = []
+
+        for (let child of await registryFolder.GetChildren()) {
+            if (child instanceof Folder) {
+                let version = child.Name
+                if (semver.valid(version))
+                versions.push(version)                
+            }
+        }
+
+        return versions
     }
 
     // Git operations
