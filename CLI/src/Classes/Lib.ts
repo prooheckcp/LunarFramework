@@ -38,25 +38,4 @@ export class Lib {
         async GetFolder(): Promise<Folder>{
                 return await Folder.create(this.packagePath)
         }
-
-        async Publish(){
-                let registry = await RegistryContainer.create(this.registry)
-                let packageFolder: Folder = await Folder.create(path.join(registry.getPath(), this.name))
-
-                //let packageVersions = await registry.getAllPackageVersions(this.name)
-                //console.log(packageVersions)
-                //let maxVersion: string = semver.maxSatisfying(packageVersions, this.version) as string
-                //console.log(maxVersion)
-
-
-                if (await packageFolder.FindFirstFolder(this.version)){
-                        console.log(`Couldn't publish this package! There's already a version ${this.version} for ${this.name}`)
-                        return
-                }
-
-                let packageClone: Folder = await (await this.GetFolder()).Clone() as Folder
-                await packageClone.SetParent(packageFolder)
-                await packageClone.SetName(this.version)
-                await registry.commitAndPush(`Upload version ${this.version} for ${this.name}`)         
-        }
 }

@@ -2,7 +2,7 @@
 
 import path from "path"
 import { Command } from "commander"
-import {Folder} from "./Classes/FileManager"
+import {Folder} from "@prooheckcp/file-manager"
 
 const COMMANDS_DIRECTORY: string = path.join(__dirname, "Commands")
 

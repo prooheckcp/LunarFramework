@@ -6,6 +6,6 @@
         "Shared": "./Shared"
     },
     "craters": {
-        "Crate": "0.0.1"
+        "Crate": "Crate/0.0.1"
     }
 }
