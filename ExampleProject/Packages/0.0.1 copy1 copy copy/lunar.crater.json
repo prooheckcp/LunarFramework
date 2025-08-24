@@ -4,6 +4,6 @@
     "registry": "https://github.com/prooheckcp/LunarRegistry",
     "dependencies": {},
     "pointers": {
-        "Server": "./Server"
+        
     }
 }

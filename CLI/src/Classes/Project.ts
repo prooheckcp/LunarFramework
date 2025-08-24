@@ -3,6 +3,7 @@ import {Folder} from "@prooheckcp/file-manager"
 import loopThruObject from "./../Functions/loopThruObject"
 import semver from "semver"
 import path from "path"
+import ReservedKeywords from "../Constants/ReservedKeywords.json"
 
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P];
@@ -36,11 +37,18 @@ export class Project {
     async Install(){
         let registry = await RegistryContainer.create(this.registry)
         let packagesFolder: Folder = await Folder.create(path.join(this.packagePath, "Packages"))
+        let dictionaryFolders: Record<string, Folder> = {}
+
+        for (const [key, value] of Object.entries(this.cratersPaths)){
+            let targetPath = path.join(this.packagePath, value)
+            let pointerFolder = await Folder.create(targetPath)
+            pointerFolder.SetName(key)
+
+            dictionaryFolders[key] = pointerFolder
+        }
 
         for (const [key, value] of Object.entries(this.craters)){
             const [name, version] = value.split("/");
-
-           // console.log(`Key: ${key}, Value: ${value} Name: ${name}, Version: ${version}`)
 
             if (!semver.valid(version)){
                 console.log(`Failed to install the package ${name}, version is invalid`)
@@ -62,6 +70,8 @@ export class Project {
             }
 
             let clonedPackage: Folder = await folder.Clone() as Folder
+            await clonedPackage.FindFirstChild(ReservedKeywords.Crater)
+            // if dictionaryFolders[]
             clonedPackage.SetParent(packagesFolder)
             clonedPackage.SetName(key)
         }
