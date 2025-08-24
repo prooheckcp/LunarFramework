@@ -35,13 +35,14 @@ export class Project {
 
     async Install(){
         let registry = await RegistryContainer.create(this.registry)
-
         let packagesFolder: Folder = await Folder.create(path.join(this.packagePath, "Packages"))
 
         for (const [key, value] of Object.entries(this.craters)){
             const [name, version] = value.split("/");
 
-            if (semver.valid(version)){
+           // console.log(`Key: ${key}, Value: ${value} Name: ${name}, Version: ${version}`)
+
+            if (!semver.valid(version)){
                 console.log(`Failed to install the package ${name}, version is invalid`)
                 continue
             }

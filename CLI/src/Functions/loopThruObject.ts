@@ -6,4 +6,10 @@ export default function loopThruObject(object: any, assignableObject: any){
         }else if (assignableObject[index])
             object[index] = assignableObject[index]
     }
+
+    for (const index of Object.getOwnPropertyNames(assignableObject)){
+        if (!object[index]){
+            object[index] = assignableObject[index]
+        }
+    }
 }
