@@ -6,25 +6,88 @@ import { spawn } from 'child_process';
 import envPaths from 'env-paths';
 
 export class RegistryContainer {
-    // In-memory lock map to avoid concurrent clone/pull on same repo
-    private static locks: Map<string, Promise<string>> = new Map()
+    private repoPath: string;
+    private registryUrl: string;
 
-    // Root directory where registries are stored (hidden / system data location)
-    private static getBaseDir(): string {
-        const codeDbPath = envPaths('code-db').data
-        const base = path.join(codeDbPath, 'registries')
+    // In-memory lock map to avoid concurrent operations on same repo
+    private static locks: Map<string, Promise<RegistryContainer>> = new Map();
 
-        return base
+    private constructor(registryUrl: string, repoPath: string) {
+        this.registryUrl = registryUrl;
+        this.repoPath = repoPath;
     }
 
-    // Derive deterministic folder name from URL (safe + short)
+    // Factory method to create and initialize container
+    static async create(registryUrl: string): Promise<RegistryContainer> {
+        const repoPath = this.getRepoDir(registryUrl);
+        
+        if (!this.locks.has(repoPath)) {
+            const task = (async () => {
+                await this.ensureBaseDir();
+                
+                if (await this.repoExists(registryUrl)) {
+                    return new RegistryContainer(registryUrl, repoPath);
+                } else {
+                    const container = new RegistryContainer(registryUrl, repoPath);
+                    await container.clone();
+                    return container;
+                }
+            })()
+                .finally(() => {
+                    setTimeout(() => this.locks.delete(repoPath), 50);
+                });
+            this.locks.set(repoPath, task);
+        }
+        return this.locks.get(repoPath)!;
+    }
+
+    // Git operations
+    async clone(): Promise<void> {
+        await this.runGit(['clone', '--depth=1', this.registryUrl, this.repoPath]);
+    }
+
+    async pull(): Promise<void> {
+        try {
+            await this.runGit(['pull', '--ff-only']);
+        } catch {
+            await this.runGit(['pull']);
+        }
+    }
+
+    async fetch(): Promise<void> {
+        await this.runGit(['fetch', '--all', '--prune']);
+    }
+
+    async commit(message: string = "Update from RegistryContainer"): Promise<void> {
+        await this.runGit(['add', '.']);
+        try {
+            await this.runGit(['commit', '-m', message]);
+        } catch (err: any) {
+            if (!/nothing to commit/.test(err.message)) throw err;
+        }
+    }
+
+    async push(): Promise<void> {
+        await this.runGit(['push']);
+    }
+
+    // Getter for repo path
+    getPath(): string {
+        return this.repoPath;
+    }
+
+    // Static utility methods
+    private static getBaseDir(): string {
+        const codeDbPath = envPaths('code-db').data;
+        return path.join(codeDbPath, 'registries');
+    }
+
     private static folderNameFromUrl(registryUrl: string): string {
         let basePart: string;
         try {
             const u = new URL(registryUrl);
             const parts = u.pathname.split('/').filter(Boolean);
             if (parts.length >= 2) {
-                // owner/repo
                 basePart = parts.slice(-2).join('-');
             } else {
                 basePart = parts.join('-') || 'repo';
@@ -34,7 +97,6 @@ export class RegistryContainer {
         }
         basePart = basePart.replace(/\.git$/i, '');
         const hash = crypto.createHash('sha1').update(registryUrl).digest('hex').slice(0, 10);
-
         return `${basePart}-${hash}`;
     }
 
@@ -42,75 +104,13 @@ export class RegistryContainer {
         return path.join(this.getBaseDir(), this.folderNameFromUrl(registryUrl));
     }
 
-    static async repoExists(registryUrl: string): Promise<boolean> {
+    private static async repoExists(registryUrl: string): Promise<boolean> {
         const dir = this.getRepoDir(registryUrl);
-        
-        if (!existsSync(dir)) 
-            return false;
-
+        if (!existsSync(dir)) return false;
         const gitDir = path.join(dir, '.git');
         return existsSync(gitDir);
     }
 
-    static async cloneRegistry(registryUrl: string): Promise<string> {
-        const targetDir = this.getRepoDir(registryUrl);
-        if (await this.repoExists(registryUrl)) return targetDir;
-        await this.ensureBaseDir();
-        await this.runGit(['clone', '--depth=1', registryUrl, targetDir]);
-        return targetDir;
-    }
-
-    static async updateRegistry(registryUrl: string): Promise<string> {
-        const dir = this.getRepoDir(registryUrl);
-        if (!(await this.repoExists(registryUrl))) return dir;
-        // Fetch & pull
-        await this.runGit(['-C', dir, 'fetch', '--all', '--prune']);
-        // Fast-forward only to avoid merge commits
-        try {
-            await this.runGit(['-C', dir, 'pull', '--ff-only']);
-        } catch {
-            // Fallback to normal pull if ff-only fails
-            await this.runGit(['-C', dir, 'pull']);
-        }
-        return dir;
-    }
-
-    static async commitAndPush(
-        repoDir: string,
-        message: string = "Update from RegistryContainer"
-    ): Promise<void> {
-        // Stage all changes
-        await this.runGit(['-C', repoDir, 'add', '.']);
-
-        // Commit
-        await this.runGit(['-C', repoDir, 'commit', '-m', message]);
-
-        // Push to the remote (current branch)
-        await this.runGit(['-C', repoDir, 'push']);
-    }
-
-
-    // Ensure repo is present and up to date, returns absolute directory
-    static async ensureAndGet(registryUrl: string): Promise<string> {
-        const key = this.getRepoDir(registryUrl);
-        if (!this.locks.has(key)) {
-            const task = (async () => {
-                if (await this.repoExists(registryUrl)) {
-                    return this.updateRegistry(registryUrl);
-                } else {
-                    return this.cloneRegistry(registryUrl);
-                }
-            })()
-                .finally(() => {
-                    // Release lock after completion (slight delay to batch quick successive calls)
-                    setTimeout(() => this.locks.delete(key), 50);
-                });
-            this.locks.set(key, task);
-        }
-        return this.locks.get(key)!;
-    }
-
-    // Internal: ensure base dir exists
     private static async ensureBaseDir(): Promise<void> {
         const base = this.getBaseDir();
         try {
@@ -120,9 +120,9 @@ export class RegistryContainer {
         }
     }
 
-    private static runGit(args: string[]): Promise<void> {
+    private runGit(args: string[]): Promise<void> {
         return new Promise((resolve, reject) => {
-            const child = spawn('git', args, { stdio: 'inherit' });
+            const child = spawn('git', args, { stdio: 'inherit', cwd: this.repoPath });
             child.on('error', reject);
             child.on('exit', code => {
                 if (code === 0) resolve();
