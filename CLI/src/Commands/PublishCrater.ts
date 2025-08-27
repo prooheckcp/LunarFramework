@@ -16,7 +16,7 @@ const init = (program: any)=> {
             console.error(`Could not find "${ReservedKeywords.Crater}" in the target folder.`)
             return 
         }
-           
+        
         let object: Crater = new Crater(await craterFile.ReadObject(), craterFile.Parent)
         object.Publish()
     });

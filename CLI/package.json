@@ -25,7 +25,7 @@
     "typescript": "^5.8.3"
   },
   "dependencies": {
-    "@prooheckcp/file-manager": "^0.0.9",
+    "@prooheckcp/file-manager": "^0.0.11",
     "commander": "^14.0.0",
     "env-paths": "^3.0.0",
     "semver": "^7.7.2"

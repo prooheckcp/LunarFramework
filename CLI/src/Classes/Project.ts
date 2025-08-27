@@ -1,9 +1,10 @@
 import RegistryContainer from "../Modules/RegistryContainer"
-import {Folder} from "@prooheckcp/file-manager"
+import {Folder, Instance, File} from "@prooheckcp/file-manager"
 import loopThruObject from "./../Functions/loopThruObject"
 import semver from "semver"
 import path from "path"
 import ReservedKeywords from "../Constants/ReservedKeywords.json"
+import {Crater} from "./Crater"
 
 type PartialDeep<T> = {
   [P in keyof T]?: T[P] extends object ? PartialDeep<T[P]> : T[P];
@@ -70,8 +71,20 @@ export class Project {
             }
 
             let clonedPackage: Folder = await folder.Clone() as Folder
-            await clonedPackage.FindFirstChild(ReservedKeywords.Crater)
-            // if dictionaryFolders[]
+            let craterFile: Instance | null = await clonedPackage.FindFirstChild(ReservedKeywords.Crater)
+
+            if (craterFile && craterFile instanceof File){
+                let crater = new Crater(await (craterFile as File).ReadObject(), craterFile.Parent)
+
+                for (const [pointerName, targetPath] of Object.entries(crater.pointers)){
+                    let targetFolder: Folder | null = await Folder.create(path.join(crater.packagePath, targetPath))
+
+                    if (targetFolder && dictionaryFolders[pointerName]){
+                        await targetFolder.SetParent(dictionaryFolders[pointerName])
+                    }
+                }
+            }
+
             clonedPackage.SetParent(packagesFolder)
             clonedPackage.SetName(key)
         }
